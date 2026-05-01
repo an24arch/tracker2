@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Sprint Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#e8e3dc;font-family:'DM Sans',sans-serif;padding:48px 40px;overflow-x:hidden;min-height:100vh}
+.container{max-width:780px;margin:auto;position:relative}
+
+.site-title{font-family:'DM Sans',sans-serif;font-size:clamp(28px,5vw,52px);font-weight:700;letter-spacing:-2px;line-height:1;color:#f0ebe3;margin-bottom:6px;cursor:text;outline:none;border:none;background:transparent;width:100%;font-style:italic}
+.site-title:focus{color:#e05a2b}
+.subtitle{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#444;margin-bottom:48px}
+
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#e05a2b;margin-bottom:16px;font-weight:500}
+
+.projects{margin-bottom:56px}
+.project-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;margin-bottom:2px;border-bottom:1px solid #181818;padding:10px 0}
+.project-row:first-child{border-top:1px solid #181818}
+
+.proj-name-wrap{overflow:hidden}
+.proj-name{background:transparent;border:none;color:#e8e3dc;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;outline:none;width:100%;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1),color 0.15s,font-weight 0.15s;display:inline-block;transform-origin:left center}
+.proj-name:focus,.project-row:hover .proj-name{transform:scale(1.045);color:#f0ebe3;font-weight:500}
+.proj-name::placeholder{color:#2a2a2a}
+
+.stages{display:flex;gap:5px;align-items:center}
+.stage-pip{width:20px;height:5px;border-radius:1px;background:#1c1c1c;cursor:pointer;transition:background 0.12s,transform 0.1s}
+.stage-pip:hover{transform:scaleY(1.6)}
+.stage-pip.active{background:#e05a2b}
+
+.weeks{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:56px}
+.week{background:#0f0f0f;padding:20px;border:1px solid #181818;position:relative;transition:border-color 0.2s}
+.week:hover{border-color:#242424}
+.week-num{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#2e2e2e;margin-bottom:8px}
+.week-title{background:transparent;border:none;color:#e8e3dc;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;outline:none;width:100%;margin-bottom:14px;letter-spacing:-0.3px}
+.week-title:focus{color:#e05a2b}
+
+.tasks{display:flex;flex-direction:column;gap:3px;min-height:20px}
+.task{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;background:#0a0a0a;border:1px solid #181818;cursor:pointer;font-size:13px;transition:all 0.12s;position:relative;overflow:hidden;line-height:1.4}
+.task::before{content:'';position:absolute;left:0;top:0;height:100%;width:2px;background:#e05a2b;transform:scaleY(0);transition:transform 0.12s}
+.task:hover::before{transform:scaleY(1)}
+.task:hover{border-color:#242424;background:#111}
+.task.done{opacity:0.28}
+.task.done .task-text{text-decoration:line-through}
+.task-check{width:13px;height:13px;border:1px solid #2e2e2e;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all 0.12s;border-radius:2px}
+.task.done .task-check{background:#e05a2b;border-color:#e05a2b}
+.task-check-mark{display:none;width:7px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.task.done .task-check-mark{display:block}
+
+.add-btn{margin-top:10px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2a2a2a;cursor:pointer;transition:color 0.12s;padding:2px 0;display:inline-block}
+.add-btn:hover{color:#e05a2b}
+
+.progress{margin-bottom:40px}
+.progress-bar-wrap{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.progress-bar-bg{height:2px;background:#181818;position:relative;overflow:hidden}
+.progress-bar-fill{height:100%;background:#e05a2b;transition:width 0.45s cubic-bezier(0.23,1,0.32,1)}
+.progress-stat{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:#383838;letter-spacing:1px}
+.progress-num{font-family:'DM Sans',sans-serif;font-size:44px;font-weight:700;font-style:italic;color:#e05a2b;letter-spacing:-3px;line-height:1;margin-top:10px}
+
+.divider{width:32px;height:2px;background:#e05a2b;margin-bottom:48px}
+
+@media(max-width:540px){.weeks{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<canvas id="cursorCanvas" style="position:fixed;top:0;left:0;pointer-events:none;z-index:9999;width:100vw;height:100vh"></canvas>
+
+<div class="container">
+<input class="site-title" id="siteTitle" value="Portfolio Sprint" />
+<div class="subtitle">Sprint Tracker — Season 01</div>
+<div class="divider"></div>
+
+<div class="projects">
+  <div class="section-label">Active Projects</div>
+  <div id="projects"></div>
+</div>
+
+<div class="section-label">Sprint Weeks</div>
+<div class="weeks" id="weeks"></div>
+
+<div class="progress">
+  <div class="section-label">Completion</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-stat">
+      <span id="prog-label">0 of 0 tasks</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progBar" style="width:0%"></div></div>
+  </div>
+  <div class="progress-num" id="progNum">0%</div>
+</div>
+</div>
+
+<script>
+const canvas = document.getElementById('cursorCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();
+window.addEventListener('resize',resize);
+
+const trail = [];
+const MAX = 22;
+let mouse = {x:-300,y:-300};
+
+document.addEventListener('mousemove',e=>{
+  mouse.x=e.clientX; mouse.y=e.clientY;
+  trail.push({x:e.clientX,y:e.clientY,t:Date.now()});
+  if(trail.length>MAX) trail.shift();
+});
+
+function drawCursor(){
+  ctx.clearRect(0,0,W,H);
+  const now = Date.now();
+  for(let i=0;i<trail.length;i++){
+    const p = trail[i];
+    const age = now - p.t;
+    const frac = i/trail.length;
+    const alpha = frac * Math.max(0, 1 - age/220) * 0.25;
+    const r = 1.5 + frac*5;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(224,90,43,${alpha})`;
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.arc(mouse.x,mouse.y,5,0,Math.PI*2);
+  ctx.fillStyle='rgba(224,90,43,0.55)';
+  ctx.fill();
+  requestAnimationFrame(drawCursor);
+}
+drawCursor();
+
+function save(){try{localStorage.setItem('sprintV3',JSON.stringify({projects,weeks,taskState,title}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem('sprintV3'));if(!d)return;projects=d.projects;weeks=d.weeks;taskState=d.taskState||{};title=d.title||'Portfolio Sprint'}catch(e){}}
+
+let title='Portfolio Sprint';
+let projects=Array.from({length:5},()=>({name:'',stage:0}));
+let weeks=[
+  {title:'Audit & Plan',tasks:['Audit existing work','Define visual direction','Research competitors']},
+  {title:'Build Assets',tasks:['Build case study assets','Photography / mockups']},
+  {title:'Layout & Write',tasks:['Design portfolio layout','Write copy for each project']},
+  {title:'Polish & Ship',tasks:['Polish interactions','Export + publish']}
+];
+let taskState={};
+
+document.getElementById('siteTitle').addEventListener('input',function(){title=this.value;save()});
+
+function renderProjects(){
+  document.getElementById('projects').innerHTML=projects.map((p,i)=>`
+  <div class="project-row">
+    <div class="proj-name-wrap">
+      <input class="proj-name" placeholder="Project ${i+1}" value="${p.name}" oninput="projects[${i}].name=this.value;save()">
+    </div>
+    <div class="stages">${[0,1,2,3].map(s=>`<div class="stage-pip ${p.stage>s?'active':''}" onclick="setStage(${i},${s+1})"></div>`).join('')}</div>
+  </div>`).join('');
+}
+
+function setStage(i,s){projects[i].stage=projects[i].stage===s?0:s;renderProjects();save()}
+
+function renderWeeks(){
+  document.getElementById('weeks').innerHTML=weeks.map((w,wi)=>`
+  <div class="week">
+    <div class="week-num">Week 0${wi+1}</div>
+    <input class="week-title" value="${w.title||''}" oninput="weeks[${wi}].title=this.value;save()" placeholder="Week title">
+    <div class="tasks">
+      ${w.tasks.map((t,ti)=>{
+        const id=wi+'-'+ti,done=taskState[id];
+        return `<div class="task ${done?'done':''}" onclick="toggleTask('${id}')"><div class="task-check"><div class="task-check-mark"></div></div><span class="task-text">${t}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="add-btn" onclick="addTask(${wi})">+ add task</div>
+  </div>`).join('');
+  updateProgress();
+}
+
+function addTask(wi){
+  const t=prompt('New task:');
+  if(!t||!t.trim())return;
+  weeks[wi].tasks.push(t.trim());
+  save();renderWeeks();
+}
+
+function toggleTask(id){
+  taskState[id]=!taskState[id];
+  save();renderWeeks();
+}
+
+function updateProgress(){
+  let total=0,done=0;
+  weeks.forEach((w,wi)=>w.tasks.forEach((_,ti)=>{total++;if(taskState[wi+'-'+ti])done++}));
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('progBar').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=`${done} of ${total} tasks`;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('progNum').textContent=pct+'%';
+}
+
+load();
+document.getElementById('siteTitle').value=title;
+renderProjects();
+renderWeeks();
+</script>
+</body>
+</html>
